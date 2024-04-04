@@ -59,13 +59,72 @@
 
 		private function getCountries($chatId)
 		{
-			// TODO получение стран
+			// получение стран
+			$url = "http://api.leads.su/webmaster/geo/getCountries?token={$this->config->getLeadsToken()}";
+
+			$response = file_get_contents($url);
+
+			if ($response === false) {
+				$this->sendMessage($chatId, 'Не удалось получить данные о странах.');
+				return;
+			}
+
+			$data = json_decode($response, true);
+
+			if ($data === null || !isset($data['data'])) {
+				$this->sendMessage($chatId, 'Ошибка анализа данных о странах.');
+				return;
+			}
+
+			$countries = $data['data'];
+
+			// сортировка по имени в обратном порядке
+			usort($countries, function ($a, $b) {
+				return strcmp($b['name'], $a['name']);
+			});
+
+			// получение первых 10 стран
+			$topCountries = array_slice($countries, 0, 10);
+
+			$message = "Топ-10 стран (в обратном алфавитном порядке):\n";
+			foreach ($topCountries as $country) {
+				$message .= $country['name'] . "\n";
+			}
+
+			// Отправка сообщения
+			$this->sendMessage($chatId, $message);
 		}
+
 
 		private function getUser($chatId)
 		{
-			// TODO получение пользователя
+			// получаем данные о пользователе
+			$url = "http://api.leads.su/webmaster/account?token={$this->config->getLeadsToken()}";
+			$response = file_get_contents($url);
+
+			if ($response === false) {
+				$this->sendMessage($chatId, 'Не удалось получить данные пользователя.');
+				return;
+			}
+
+			$data = json_decode($response, true);
+
+			if ($data === null || !isset($data['data'])) {
+				$this->sendMessage($chatId, 'Ошибка анализа пользовательских данных');
+				return;
+			}
+
+			// Получение ID - и имени пользователя из данных
+			$id = $data['data']['id'];
+			$currentUserId = $data['data']['current_user_id'];
+			$userName = $data['data']['name'];
+
+			$message = "ID: $id\nUser ID: $currentUserId\nUser Name: $userName";
+
+			// Отправка сообщения
+			$this->sendMessage($chatId, $message);
 		}
+
 
 		private function sendMessage($chatId, $text)
 		{
