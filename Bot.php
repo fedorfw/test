@@ -22,6 +22,7 @@
 					$command = $message['text'];
 					switch ($command) {
 						case '/help':
+						case '/start':
 							$this->getHelp($message['chat']['id']);
 							break;
 						case '/test':
