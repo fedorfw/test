@@ -13,6 +13,7 @@
 
 		public function handleRequest()
 		{
+			// получаем хук и декодируем его в массив
 			$update = json_decode(file_get_contents('php://input'), true);
 
 			if (isset($update['message'])) {
@@ -41,12 +42,19 @@
 
 		private function getTest($chatId)
 		{
-			// TODO проверка тест
+			// проверка тест
+			$this->sendMessage($chatId, 'тест успешно пройден');
 		}
 
 		private function getHelp($chatId)
 		{
-			// TODO помощь
+			// помощь - показать список команд
+			$this->sendMessage($chatId, "
+			Команды бота:\n
+			/test - тест проверка\n
+			/getCountries - Получение списка стран\n
+			/getUser - Получение данных текущего пользователя
+			 ");
 		}
 
 		private function getCountries($chatId)
@@ -61,6 +69,12 @@
 
 		private function sendMessage($chatId, $text)
 		{
-			// TODO базовый метод отправки
+			// базовый метод отправки
+			$url = "https://api.telegram.org/bot{$this->config->getTelegramToken()}/sendMessage";
+			$params = [
+				'chat_id' => $chatId,
+				'text' => $text
+			];
+			file_get_contents($url . '?' . http_build_query($params));
 		}
 	}
